@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header shell">
+  <a class="back-link" href="/api">Semua dokumentasi API</a>
+  <div class="card-topline">
+    <span class="category">API {{ technology.api_version }}</span>
+    <span class="status status-{{ technology.status }}">{{ statuses[technology.status] }}</span>
+  </div>
+  <h1>{{ technology.name }} API</h1>
+  <p>{{ technology.description }}</p>
+</header>
+
+<div class="section shell docs-layout">
+  <nav class="docs-nav" aria-label="Bagian dokumentasi">
+    <a href="#overview">Ringkasan</a>
+    <a href="#endpoint">Endpoint</a>
+    <a href="#examples">Contoh</a>
+    <a href="#errors">Error</a>
+    <a href="#limits">Batasan</a>
+  </nav>
+
+  <article class="docs-content">
+    <section id="overview">
+      <h2>Ringkasan</h2>
+      <p>
+        Endpoint LUTUNG adalah proxy playground dengan pembatasan permintaan.
+        Kredensial permanen layanan tujuan tidak dikirim ke browser.
+      </p>
+      <div class="notice">
+        <strong>Integrasi produksi</strong>
+        <p>
+          Base URL, bearer token, dan kebijakan akses langsung diterbitkan oleh pemilik layanan.
+          Kontrak upstream harus disetujui sebelum penggunaan produksi.
+        </p>
+      </div>
+    </section>
+
+    <section id="endpoint">
+      <h2>Endpoint playground</h2>
+      <div class="endpoint-line"><span>POST</span><code>{{ technology.operation }}</code></div>
+      <dl class="definition-list">
+        <div><dt>Content-Type</dt><dd><code>multipart/form-data</code></dd></div>
+        <div><dt>Field</dt><dd><code>file</code>, wajib</dd></div>
+        <div><dt>Format</dt><dd>{{ technology.accepted_extensions | join(', ') }}</dd></div>
+        <div><dt>Ukuran maksimum</dt><dd>{{ technology.max_size_mb }} MB</dd></div>
+        <div><dt>Timeout gateway</dt><dd>{{ technology.timeout_seconds }} detik</dd></div>
+      </dl>
+      <a class="button button-primary" href="/playground/{{ technology.id }}">Uji melalui playground</a>
+    </section>
+
+    <section id="examples">
+      <h2>Contoh permintaan</h2>
+      {% for language, code in examples.items() %}
+      <details class="code-example" {% if loop.first %}open{% endif %}>
+        <summary>{{ language | title }}</summary>
+        <pre><code>{{ code }}</code></pre>
+      </details>
+      {% endfor %}
+    </section>
+
+    <section id="errors">
+      <h2>Error</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>HTTP</th><th>Kode</th><th>Arti</th></tr></thead>
+          <tbody>
+            <tr><td>400</td><td><code>empty_file</code></td><td>File kosong atau permintaan tidak valid.</td></tr>
+            <tr><td>413</td><td><code>file_too_large</code></td><td>File melampaui batas teknologi.</td></tr>
+            <tr><td>415</td><td><code>unsupported_file_type</code></td><td>Ekstensi, tipe, atau signature file tidak sesuai.</td></tr>
+            <tr><td>429</td><td><code>rate_limit_exceeded</code></td><td>Batas permintaan terlampaui.</td></tr>
+            <tr><td>502</td><td><code>upstream_failure</code></td><td>Layanan tujuan gagal merespons.</td></tr>
+            <tr><td>504</td><td><code>upstream_timeout</code></td><td>Layanan tujuan melewati timeout.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="limits">
+      <h2>Batasan dan privasi</h2>
+      <p>{{ technology.retention_notice }}</p>
+      <p>
+        Akurasi dan waktu proses bergantung pada kualitas dokumen dan layanan tujuan.
+        LUTUNG tidak menampilkan angka performa sebelum tersedia hasil pengukuran yang disetujui.
+      </p>
+    </section>
+  </article>
+</div>
+{% endblock %}

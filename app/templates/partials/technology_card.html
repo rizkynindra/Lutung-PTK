@@ -1,0 +1,14 @@
+<article class="technology-card">
+  <div class="card-topline">
+    <span class="category">{{ technology.category | replace('-', ' ') | title }}</span>
+    <span class="status status-{{ technology.status }}">{{ statuses[technology.status] }}</span>
+  </div>
+  <h3><a href="/technologies/{{ technology.id }}">{{ technology.name }}</a></h3>
+  <p>{{ technology.short_description }}</p>
+  <div class="card-actions">
+    <a class="text-link" href="/technologies/{{ technology.id }}">Lihat rincian</a>
+    {% if technology.playground %}
+    <a class="text-link" href="/playground/{{ technology.id }}">Buka playground</a>
+    {% endif %}
+  </div>
+</article>

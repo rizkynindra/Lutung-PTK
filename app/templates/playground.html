@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header shell">
+  <a class="back-link" href="/technologies/{{ technology.id }}">Rincian {{ technology.name }}</a>
+  <p class="section-label">Playground</p>
+  <h1>Uji {{ technology.name }}</h1>
+  <p>Unggah satu file untuk menguji alur validasi dan pemrosesan teknologi.</p>
+</header>
+
+<section
+  class="section shell playground"
+  data-playground
+  data-endpoint="{{ technology.operation }}"
+  data-max-bytes="{{ technology.max_size_mb * 1024 * 1024 }}"
+>
+  <div class="upload-panel">
+    <form data-upload-form>
+      <div class="drop-zone" data-drop-zone>
+        <label for="technology-file">Pilih dokumen</label>
+        <p>Tarik file ke area ini atau gunakan tombol pilih file.</p>
+        <p class="input-hint">
+          {{ technology.accepted_extensions | join(', ') }}, maksimal {{ technology.max_size_mb }} MB
+        </p>
+        <input
+          id="technology-file"
+          name="file"
+          type="file"
+          accept="{{ technology.accepted_extensions | join(',') }}"
+          required
+          data-file-input
+        >
+      </div>
+
+      <div class="file-preview" data-file-preview hidden>
+        <img data-image-preview alt="Pratinjau dokumen yang dipilih" hidden>
+        <div>
+          <strong data-file-name></strong>
+          <span data-file-size></span>
+        </div>
+        <button class="button button-quiet" type="button" data-remove-file>Hapus file</button>
+      </div>
+
+      <div class="notice">
+        <strong>Perhatian sebelum mengunggah</strong>
+        <p>Pastikan Anda memiliki hak atau izin untuk memproses dokumen ini.</p>
+        <p>{{ technology.retention_notice }}</p>
+      </div>
+
+      <button class="button button-primary submit-button" type="submit" data-submit disabled>
+        Proses {{ technology.name }}
+      </button>
+    </form>
+  </div>
+
+  <div class="result-panel" aria-live="polite" aria-busy="false" data-result-panel>
+    <div class="result-state" data-empty-state>
+      <p class="section-label">Hasil</p>
+      <h2>Belum ada dokumen yang diproses</h2>
+      <p>Hasil terstruktur dan JSON mentah akan tampil di sini.</p>
+    </div>
+    <div class="result-state" data-loading-state hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      <h2>Sedang memproses dokumen</h2>
+      <p>Jangan tutup halaman sampai permintaan selesai.</p>
+    </div>
+    <div class="result-state error-state" data-error-state hidden>
+      <h2>Proses tidak dapat dilakukan</h2>
+      <p data-error-message></p>
+      <p class="request-id" data-error-request></p>
+    </div>
+    <div data-success-state hidden>
+      <div class="result-heading">
+        <div>
+          <p class="section-label">Hasil pemrosesan</p>
+          <h2>Data yang ditemukan</h2>
+        </div>
+        <span class="status status-beta" data-demo-label hidden>Data demo</span>
+      </div>
+      <table class="result-table">
+        <thead><tr><th>Bidang</th><th>Hasil</th></tr></thead>
+        <tbody data-result-table>
+          {% for field in technology.output_fields %}
+          <tr data-result-key="{{ field.key }}"><th>{{ field.label }}</th><td>Belum tersedia</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <details class="json-result">
+        <summary>Lihat JSON mentah</summary>
+        <pre><code data-json-output></code></pre>
+      </details>
+      <div class="actions">
+        <button class="button button-secondary" type="button" data-copy-json>Salin JSON</button>
+        <button class="button button-secondary" type="button" data-download-json>Unduh JSON</button>
+        <button class="button button-quiet" type="button" data-reset>Proses dokumen lain</button>
+      </div>
+      <p class="request-id" data-request-id></p>
+      <p class="copy-feedback" role="status" data-copy-feedback></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

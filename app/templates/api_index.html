@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header shell">
+  <p class="section-label">Developer portal</p>
+  <h1>Dokumentasi API</h1>
+  <p>Kontrak, autentikasi, contoh permintaan, dan respons untuk layanan PTK.</p>
+</header>
+
+<section class="section shell docs-overview">
+  <aside class="notice">
+    <strong>Autentikasi</strong>
+    <p>Integrasi produksi menggunakan bearer token yang diterbitkan oleh pengelola layanan.</p>
+    <code>Authorization: Bearer YOUR_API_KEY</code>
+  </aside>
+  <div>
+    <h2>API yang didokumentasikan</h2>
+    <ul class="api-list">
+      {% for technology in technologies %}
+      <li>
+        <div>
+          <strong>{{ technology.name }}</strong>
+          <code>POST {{ technology.operation }}</code>
+        </div>
+        <a class="button button-secondary" href="/api/docs/{{ technology.id }}">Baca dokumentasi</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header shell">
+  <p class="section-label">Katalog</p>
+  <h1>Teknologi PTK</h1>
+  <p>Telusuri layanan berdasarkan nama, kemampuan, kategori, atau status.</p>
+</header>
+
+<section class="section shell catalog-layout">
+  <form class="filters" method="get" action="/technologies" aria-label="Filter teknologi">
+    <div class="field">
+      <label for="q">Cari</label>
+      <input id="q" name="q" type="search" value="{{ filters.q }}" placeholder="Nama atau kemampuan">
+    </div>
+    <div class="field">
+      <label for="category">Kategori</label>
+      <select id="category" name="category">
+        <option value="">Semua kategori</option>
+        {% for category in categories %}
+        <option value="{{ category.id }}" {% if filters.category == category.id %}selected{% endif %}>
+          {{ category.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        <option value="">Semua status</option>
+        {% for key, label in statuses.items() %}
+        <option value="{{ key }}" {% if filters.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="button button-primary" type="submit">Terapkan filter</button>
+      <a class="button button-quiet" href="/technologies">Hapus filter</a>
+    </div>
+  </form>
+
+  <div>
+    <p class="result-count">{{ technologies | length }} teknologi ditemukan</p>
+    {% if technologies %}
+    <div class="technology-grid">
+      {% for technology in technologies %}
+        {% include "partials/technology_card.html" %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <h2>Tidak ada hasil</h2>
+      <p>Ubah kata kunci atau hapus filter untuk melihat teknologi lain.</p>
+      <a class="button button-secondary" href="/technologies">Tampilkan semua teknologi</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

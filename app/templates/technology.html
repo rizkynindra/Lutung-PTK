@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="page-header shell detail-header">
+  <div>
+    <a class="back-link" href="/technologies">Kembali ke katalog</a>
+    <div class="card-topline">
+      <span class="category">{{ technology.category | replace('-', ' ') | title }}</span>
+      <span class="status status-{{ technology.status }}">{{ statuses[technology.status] }}</span>
+    </div>
+    <h1>{{ technology.name }}</h1>
+    <p class="lead">{{ technology.description }}</p>
+  </div>
+  <dl class="metadata">
+    <div><dt>Pemilik</dt><dd>{{ technology.owner }}</dd></div>
+    {% if technology.api %}<div><dt>Versi API</dt><dd>{{ technology.api_version }}</dd></div>{% endif %}
+    <div><dt>Batas file</dt><dd>{{ technology.max_size_mb | default('-') }} MB</dd></div>
+  </dl>
+</header>
+
+<section class="section shell detail-grid">
+  <div>
+    <h2>Kemampuan</h2>
+    <ul class="check-list">
+      {% for capability in technology.capabilities %}
+      <li>{{ capability }}</li>
+      {% else %}
+      <li>Rincian kemampuan belum dipublikasikan.</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div>
+    <h2>Input</h2>
+    <ul>
+      {% for note in technology.input_notes %}<li>{{ note }}</li>{% endfor %}
+    </ul>
+    {% if technology.accepted_extensions %}
+    <p><strong>Format:</strong> {{ technology.accepted_extensions | join(', ') }}</p>
+    {% endif %}
+  </div>
+  {% if technology.output_fields %}
+  <div>
+    <h2>Output</h2>
+    <p>Respons terstruktur dapat memuat bidang berikut:</p>
+    <ul>
+      {% for field in technology.output_fields %}<li>{{ field.label }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+{% if technology.playground or technology.api %}
+<section class="section shell action-panel">
+  <div>
+    <p class="section-label">Langkah berikutnya</p>
+    <h2>Validasi sebelum integrasi</h2>
+  </div>
+  <div class="actions">
+    {% if technology.playground %}
+    <a class="button button-primary" href="/playground/{{ technology.id }}">Uji {{ technology.name }}</a>
+    {% endif %}
+    {% if technology.api %}
+    <a class="button button-secondary" href="/api/docs/{{ technology.id }}">Baca kontrak API</a>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

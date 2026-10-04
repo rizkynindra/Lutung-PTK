@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <div class="shell hero-layout">
+    <div>
+      <p class="section-label">Lumbung Teknologi Unggulan PTK</p>
+      <h1>Welcome to Lutung</h1>
+      <p class="hero-copy">
+        Portal Teknologi yang di kembangkan sendiri oleh PTK.
+      </p>
+      <div class="actions">
+        <a class="button button-primary" href="/technologies">Lihat katalog teknologi</a>
+        <a class="button button-secondary" href="/playground/ocr-ktp">Uji OCR KTP</a>
+      </div>
+    </div>
+    <aside class="journey" aria-label="Alur penggunaan LUTUNG">
+      <ol>
+        <li><span>01</span><strong>Temukan</strong><small>Pilih kemampuan yang dibutuhkan.</small></li>
+        <li><span>02</span><strong>Coba</strong><small>Validasi hasil melalui playground.</small></li>
+        <li><span>03</span><strong>Integrasikan</strong><small>Gunakan kontrak dan contoh API.</small></li>
+      </ol>
+    </aside>
+  </div>
+</section>
+{% endblock %}

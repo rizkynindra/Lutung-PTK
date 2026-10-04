@@ -1,0 +1,153 @@
+openapi: 3.1.0
+info:
+  title: LUTUNG PTK Integration Contract
+  version: 0.1.0-draft
+  description: Draft portal-facing contract. PTK technology owners must approve response mappings and upstream retention before production.
+servers:
+  - url: /
+paths:
+  /api/v1/ocr/ktp:
+    post:
+      operationId: processKtp
+      summary: Extract KTP fields
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileRequest"
+      responses:
+        "200":
+          description: Normalized KTP result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KtpResponse"
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "413": {$ref: "#/components/responses/FileTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedType"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "502": {$ref: "#/components/responses/UpstreamFailure"}
+  /api/v1/ocr/general:
+    post:
+      operationId: processGeneralOcr
+      summary: Extract text from a document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileRequest"
+      responses:
+        "200":
+          description: Normalized OCR result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralOcrResponse"
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "413": {$ref: "#/components/responses/FileTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedType"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "502": {$ref: "#/components/responses/UpstreamFailure"}
+  /api/v1/document/detect:
+    post:
+      operationId: detectDocument
+      summary: Detect document type and location
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileRequest"
+      responses:
+        "200":
+          description: Normalized detection result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionResponse"
+        "400": {$ref: "#/components/responses/InvalidRequest"}
+        "413": {$ref: "#/components/responses/FileTooLarge"}
+        "415": {$ref: "#/components/responses/UnsupportedType"}
+        "429": {$ref: "#/components/responses/RateLimited"}
+        "502": {$ref: "#/components/responses/UpstreamFailure"}
+components:
+  schemas:
+    FileRequest:
+      type: object
+      required: [file]
+      properties:
+        file: {type: string, format: binary}
+    SuccessEnvelope:
+      type: object
+      required: [status, data, request_id]
+      properties:
+        status: {const: success}
+        data: {type: object}
+        request_id: {type: string}
+        demo: {type: boolean, default: false}
+    KtpResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                nik: {type: [string, "null"]}
+                nama: {type: [string, "null"]}
+                tempat_lahir: {type: [string, "null"]}
+                tanggal_lahir: {type: [string, "null"]}
+                jenis_kelamin: {type: [string, "null"]}
+                alamat: {type: [string, "null"]}
+    GeneralOcrResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                text: {type: string}
+                confidence: {type: [number, "null"]}
+                pages: {type: [array, "null"], items: {type: object}}
+    DetectionResponse:
+      allOf:
+        - $ref: "#/components/schemas/SuccessEnvelope"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                document_type: {type: [string, "null"]}
+                confidence: {type: [number, "null"]}
+                bounding_box: {type: [object, "null"]}
+    Error:
+      type: object
+      required: [status, error, request_id]
+      properties:
+        status: {const: error}
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+        request_id: {type: string}
+  responses:
+    InvalidRequest:
+      description: Invalid request
+      content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}
+    FileTooLarge:
+      description: File exceeds the configured limit
+      content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}
+    UnsupportedType:
+      description: Unsupported or mismatched file type
+      content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}
+    RateLimited:
+      description: Too many requests
+      content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}
+    UpstreamFailure:
+      description: Technology service failed or is unavailable
+      content: {application/json: {schema: {$ref: "#/components/schemas/Error"}}}

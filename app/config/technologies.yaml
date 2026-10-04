@@ -1,0 +1,114 @@
+categories:
+  - id: document-intelligence
+    name: Document Intelligence
+  - id: computer-vision
+    name: Computer Vision
+  - id: artificial-intelligence
+    name: Artificial Intelligence
+
+technologies:
+  - id: ocr-ktp
+    name: OCR KTP
+    short_description: Ekstraksi informasi terstruktur dari gambar KTP Indonesia.
+    description: Membaca bidang identitas pada KTP dan menyajikannya sebagai data terstruktur.
+    category: document-intelligence
+    owner: Platform Teknologi & Keamanan
+    status: beta
+    playground: true
+    api: true
+    api_version: v1
+    operation: /api/v1/ocr/ktp
+    upstream_url_env: OCR_KTP_API_URL
+    upstream_token_env: OCR_KTP_API_TOKEN
+    accepted_types: [image/jpeg, image/png]
+    accepted_extensions: [.jpg, .jpeg, .png]
+    max_size_mb: 5
+    timeout_seconds: 30
+    capabilities:
+      - Ekstraksi NIK dan nama
+      - Ekstraksi tempat dan tanggal lahir
+      - Ekstraksi alamat dan data identitas lain yang tersedia
+    input_notes:
+      - Gunakan gambar JPG atau PNG dengan teks yang terbaca.
+      - Hindari pantulan cahaya dan bagian kartu yang terpotong.
+    output_fields:
+      - {key: nik, label: NIK}
+      - {key: nama, label: Nama}
+      - {key: tempat_lahir, label: Tempat lahir}
+      - {key: tanggal_lahir, label: Tanggal lahir}
+      - {key: jenis_kelamin, label: Jenis kelamin}
+      - {key: alamat, label: Alamat}
+    retention_notice: LUTUNG tidak menyimpan unggahan secara persisten. Parser dapat memakai ruang sementara selama permintaan. Kebijakan layanan OCR tujuan harus disetujui sebelum status produksi.
+
+  - id: general-ocr
+    name: General OCR
+    short_description: Ekstraksi teks dari dokumen dan gambar umum.
+    description: Mengubah isi visual dokumen menjadi teks yang dapat disalin dan diproses.
+    category: document-intelligence
+    owner: Platform Teknologi & Keamanan
+    status: beta
+    playground: true
+    api: true
+    api_version: v1
+    operation: /api/v1/ocr/general
+    upstream_url_env: GENERAL_OCR_API_URL
+    upstream_token_env: GENERAL_OCR_API_TOKEN
+    accepted_types: [image/jpeg, image/png, application/pdf]
+    accepted_extensions: [.jpg, .jpeg, .png, .pdf]
+    max_size_mb: 10
+    timeout_seconds: 45
+    capabilities:
+      - Ekstraksi teks dokumen
+      - Hasil per halaman bila disediakan layanan
+      - Nilai keyakinan bila disediakan layanan
+    input_notes:
+      - Gunakan gambar JPG, PNG, atau PDF.
+      - Dokumen dengan resolusi baik memberikan hasil yang lebih mudah dibaca.
+    output_fields:
+      - {key: text, label: Teks}
+      - {key: confidence, label: Confidence}
+      - {key: pages, label: Halaman}
+    retention_notice: LUTUNG tidak menyimpan unggahan secara persisten. Parser dapat memakai ruang sementara selama permintaan. Kebijakan layanan OCR tujuan harus disetujui sebelum status produksi.
+
+  - id: document-detection
+    name: Document Detection
+    short_description: Deteksi jenis dan posisi dokumen pada gambar.
+    description: Mengidentifikasi tipe dokumen dan area dokumen yang terdeteksi.
+    category: document-intelligence
+    owner: Platform Teknologi & Keamanan
+    status: beta
+    playground: true
+    api: true
+    api_version: v1
+    operation: /api/v1/document/detect
+    upstream_url_env: DOCUMENT_DETECTION_API_URL
+    upstream_token_env: DOCUMENT_DETECTION_API_TOKEN
+    accepted_types: [image/jpeg, image/png]
+    accepted_extensions: [.jpg, .jpeg, .png]
+    max_size_mb: 5
+    timeout_seconds: 30
+    capabilities:
+      - Klasifikasi jenis dokumen
+      - Nilai keyakinan
+      - Koordinat area dokumen
+    input_notes:
+      - Gunakan gambar JPG atau PNG.
+      - Pastikan batas dokumen tampak pada gambar.
+    output_fields:
+      - {key: document_type, label: Jenis dokumen}
+      - {key: confidence, label: Confidence}
+      - {key: bounding_box, label: Bounding box}
+    retention_notice: LUTUNG tidak menyimpan unggahan secara persisten. Parser dapat memakai ruang sementara selama permintaan. Kebijakan layanan deteksi tujuan harus disetujui sebelum status produksi.
+
+  - id: face-matching
+    name: Face Matching
+    short_description: Perbandingan kemiripan wajah pada dua gambar.
+    description: Teknologi ini sedang dipersiapkan dan belum dapat digunakan melalui LUTUNG.
+    category: computer-vision
+    owner: Platform Teknologi & Keamanan
+    status: coming-soon
+    playground: false
+    api: false
+    capabilities: []
+    input_notes: []
+    output_fields: []

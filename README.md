@@ -53,12 +53,12 @@ oleh pemilik layanan.
 
 ## DEPLOY TO OPENSHIFT
 
-docker build --platform linux/amd64 -t lutung-ptk:v1.0.0 .
+docker build --platform linux/amd64 -t lutung-ptk:v1.0.1 .
 
 oc login
 
 docker login -u pti-dev -p $(oc whoami -t) default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id
 
-docker tag lutung-ptk:v1.0.0 default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id/ptk1/lutung-ptk:v1.0.0
+docker tag lutung-ptk:v1.0.1 default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id/ptk1/lutung-ptk:v1.0.1
 
-docker push default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id/ptk1/lutung-ptk:v1.0.0
+docker push default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id/ptk1/lutung-ptk:v1.0.1

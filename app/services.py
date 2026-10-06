@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import logging
 import os
 import time
 from collections import defaultdict, deque
@@ -14,6 +16,12 @@ from fastapi import UploadFile
 BASE_DIR = Path(__file__).resolve().parent
 REGISTRY_PATH = BASE_DIR / "config" / "technologies.yaml"
 ALLOWED_STATUSES = {"available", "beta", "development", "coming-soon", "maintenance"}
+MULTIPART_PAYLOAD = "multipart"
+JSON_BASE64_PAYLOAD = "json-base64"
+ALLOWED_UPSTREAM_PAYLOADS = {MULTIPART_PAYLOAD, JSON_BASE64_PAYLOAD}
+DEFAULT_BASE64_FIELD = "imageBase64"
+
+logger = logging.getLogger("lutung")
 SIGNATURES = {
     "image/jpeg": (b"\xff\xd8\xff",),
     "image/png": (b"\x89PNG\r\n\x1a\n",),
@@ -50,6 +58,11 @@ def validate_registry(registry: dict[str, Any]) -> None:
             raise ValueError(f"Unknown status for {technology_id}")
         if technology.get("playground") and not technology.get("operation"):
             raise ValueError(f"Playground operation is missing for {technology_id}")
+        if technology.get("upstream_payload", MULTIPART_PAYLOAD) not in ALLOWED_UPSTREAM_PAYLOADS:
+            raise ValueError(f"Unknown upstream payload for {technology_id}")
+        static_fields = technology.get("upstream_static_fields", {})
+        if not isinstance(static_fields, dict):
+            raise ValueError(f"Upstream static fields must be a mapping for {technology_id}")
 
 
 def find_technology(registry: dict[str, Any], technology_id: str) -> dict[str, Any] | None:
@@ -146,17 +159,19 @@ async def process_upload(
             response = await client.post(
                 upstream_url,
                 headers=headers,
-                files={"file": (upload.filename, content, upload.content_type)},
+                **upstream_body(technology, upload, content),
             )
             response.raise_for_status()
             payload = response.json()
     except httpx.TimeoutException as exc:
+        log_upstream_failure(technology, request_id, exc)
         raise ServiceError(
             504,
             "upstream_timeout",
             "Layanan membutuhkan waktu terlalu lama.",
         ) from exc
     except (httpx.HTTPError, ValueError) as exc:
+        log_upstream_failure(technology, request_id, exc)
         raise ServiceError(
             502,
             "upstream_failure",
@@ -167,20 +182,46 @@ async def process_upload(
     return {"status": "success", "data": data, "request_id": request_id, "demo": False}
 
 
+def upstream_body(technology: dict[str, Any], upload: UploadFile, content: bytes) -> dict[str, Any]:
+    if technology.get("upstream_payload") == JSON_BASE64_PAYLOAD:
+        field = technology.get("upstream_base64_field", DEFAULT_BASE64_FIELD)
+        body = dict(technology.get("upstream_static_fields") or {})
+        body[field] = base64.b64encode(content).decode("ascii")
+        return {"json": body}
+    return {"files": {"file": (upload.filename, content, upload.content_type)}}
+
+
+def log_upstream_failure(technology: dict[str, Any], request_id: str, error: Exception) -> None:
+    upstream_status = (
+        error.response.status_code if isinstance(error, httpx.HTTPStatusError) else None
+    )
+    logger.warning(
+        "upstream_failure technology=%s error=%s upstream_status=%s request_id=%s",
+        technology["id"],
+        type(error).__name__,
+        upstream_status,
+        request_id,
+    )
+
+
 def demo_result(technology_id: str) -> dict[str, Any]:
     if technology_id == "ocr-ktp":
         return {
             "nik": "[DATA DEMO]",
             "nama": "[MODE DEMO]",
-            "tempat_lahir": None,
-            "tanggal_lahir": None,
-            "jenis_kelamin": None,
+            "Tempat Lahir": None,
+            "tgl_lahir": None,
+            "Jenis Kelamin": None,
             "alamat": None,
+            "RT/RW": None,
+            "kel_desa": None,
+            "kecamatan": None,
         }
     if technology_id == "general-ocr":
         return {"text": "[Teks contoh dari mode demo LUTUNG]", "confidence": None, "pages": []}
     return {
-        "document_type": "[DEMO]",
-        "confidence": None,
-        "bounding_box": {"x": 0, "y": 0, "width": 0, "height": 0},
+        "predictions": [],
+        "kode_dokumen": "",
+        "is_match": False,
+        "message": "[MODE DEMO]",
     }

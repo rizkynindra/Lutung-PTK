@@ -49,3 +49,16 @@ LUTUNG tidak menyimpan unggahan ke penyimpanan persisten. Parser multipart dapat
 sementara selama permintaan; container menempatkan `/tmp` pada `tmpfs`. Logging hanya mencatat
 metode, path, status, durasi, dan request ID. Retensi pada layanan tujuan tetap harus dinyatakan
 oleh pemilik layanan.
+
+
+## DEPLOY TO OPENSHIFT
+
+docker build --platform linux/amd64 -t lutung-ptk:v1.0.0 .
+
+oc login
+
+docker login -u pti-dev -p $(oc whoami -t) default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id
+
+docker tag lutung-ptk:v1.0.0 default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id/ptk1/lutung-ptk:v1.0.0
+
+docker push default-route-openshift-image-registry.apps.ocp-drc.bpjsketenagakerjaan.go.id/ptk1/lutung-ptk:v1.0.0

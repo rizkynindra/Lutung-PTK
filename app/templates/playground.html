@@ -80,7 +80,7 @@
         <thead><tr><th>Bidang</th><th>Hasil</th></tr></thead>
         <tbody data-result-table>
           {% for field in technology.output_fields %}
-          <tr data-result-key="{{ field.key }}"><th>{{ field.label }}</th><td>Belum tersedia</td></tr>
+          <tr data-result-key="{{ field.key }}"{% if field.item_key %} data-result-item="{{ field.item_key }}"{% endif %}><th>{{ field.label }}</th><td>Belum tersedia</td></tr>
           {% endfor %}
         </tbody>
       </table>

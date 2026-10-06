@@ -1,3 +1,16 @@
+const resultText = (value, itemKey) => {
+  if (itemKey && Array.isArray(value)) {
+    const labels = value
+      .map((item) => (item && typeof item === "object" ? item[itemKey] : undefined))
+      .filter((item) => item !== null && item !== undefined && item !== "");
+    return labels.join(", ");
+  }
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+  return typeof value === "object" ? JSON.stringify(value) : String(value);
+};
+
 const playground = document.querySelector("[data-playground]");
 
 if (playground) {
@@ -120,13 +133,8 @@ if (playground) {
       }
       result = payload;
       playground.querySelectorAll("[data-result-key]").forEach((row) => {
-        const value = payload.data[row.dataset.resultKey];
-        row.querySelector("td").textContent =
-          value === null || value === undefined || value === ""
-            ? "Tidak tersedia"
-            : typeof value === "object"
-              ? JSON.stringify(value)
-              : String(value);
+        const text = resultText(payload.data[row.dataset.resultKey], row.dataset.resultItem);
+        row.querySelector("td").textContent = text || "Tidak tersedia";
       });
       jsonOutput.textContent = JSON.stringify(payload, null, 2);
       requestId.textContent = `Request ID: ${payload.request_id}`;

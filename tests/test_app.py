@@ -1,3 +1,5 @@
+import base64
+import json
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -99,7 +101,7 @@ def test_all_playgrounds_return_explicit_demo_results(monkeypatch) -> None:
     cases = [
         ("/api/v1/ocr/ktp", "ktp.jpg", "image/jpeg", JPEG, "nik"),
         ("/api/v1/ocr/general", "scan.pdf", "application/pdf", PDF, "text"),
-        ("/api/v1/document/detect", "document.png", "image/png", PNG, "document_type"),
+        ("/api/v1/document/detect", "document.png", "image/png", PNG, "predictions"),
     ]
     for path, name, content_type, content, expected_field in cases:
         response = client.post(path, files={"file": (name, content, content_type)})
@@ -108,6 +110,13 @@ def test_all_playgrounds_return_explicit_demo_results(monkeypatch) -> None:
         assert payload["demo"] is True
         assert expected_field in payload["data"]
         assert payload["request_id"]
+
+
+def test_document_detection_result_uses_prediction_class() -> None:
+    response = client.get("/playground/document-detection")
+    assert response.status_code == 200
+    assert 'data-result-key="predictions"' in response.text
+    assert 'data-result-item="class"' in response.text
 
 
 def test_upload_rejects_mismatched_signature(monkeypatch) -> None:
@@ -138,8 +147,9 @@ def test_upstream_adapter_keeps_token_server_side(monkeypatch) -> None:
 
     def upstream(request: httpx.Request) -> httpx.Response:
         assert request.headers["authorization"] == "Bearer server-secret"
-        assert b'filename="ktp.jpg"' in request.content
-        return httpx.Response(200, json={"data": {"nik": "normalized"}})
+        assert request.headers["content-type"] == "application/json"
+        assert json.loads(request.content) == {"imageBase64": base64.b64encode(JPEG).decode()}
+        return httpx.Response(200, json={"data": {"nik": "normalized"}, "image": "ignored"})
 
     transport = httpx.MockTransport(upstream)
     monkeypatch.setenv("LUTUNG_DEMO_MODE", "false")
@@ -157,6 +167,67 @@ def test_upstream_adapter_keeps_token_server_side(monkeypatch) -> None:
     assert response.status_code == 200
     assert response.json()["data"] == {"nik": "normalized"}
     assert "server-secret" not in response.text
+
+
+def test_document_detection_sends_base64_and_document_code(monkeypatch) -> None:
+    real_async_client = httpx.AsyncClient
+
+    def upstream(request: httpx.Request) -> httpx.Response:
+        assert request.headers["content-type"] == "application/json"
+        assert "authorization" not in request.headers
+        assert json.loads(request.content) == {
+            "kode_dokumen": "",
+            "image": base64.b64encode(PNG).decode(),
+        }
+        return httpx.Response(
+            200,
+            json={
+                "predictions": [],
+                "kode_dokumen": "",
+                "is_match": False,
+                "message": "Unknown document code: ",
+            },
+        )
+
+    transport = httpx.MockTransport(upstream)
+    monkeypatch.setenv("LUTUNG_DEMO_MODE", "false")
+    monkeypatch.setenv(
+        "DOCUMENT_DETECTION_API_URL",
+        "http://api-document-detection.internal/predict",
+    )
+    monkeypatch.delenv("DOCUMENT_DETECTION_API_TOKEN", raising=False)
+    monkeypatch.setattr(
+        "app.services.httpx.AsyncClient",
+        lambda **_kwargs: real_async_client(transport=transport),
+    )
+
+    response = client.post(
+        "/api/v1/document/detect",
+        files={"file": ("document.png", PNG, "image/png")},
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["is_match"] is False
+    assert response.json()["data"]["predictions"] == []
+
+
+def test_upstream_rejection_is_logged_without_secrets(monkeypatch, caplog) -> None:
+    real_async_client = httpx.AsyncClient
+    transport = httpx.MockTransport(lambda _request: httpx.Response(415))
+    monkeypatch.setenv("LUTUNG_DEMO_MODE", "false")
+    monkeypatch.setenv("OCR_KTP_API_URL", "https://service.internal/ocr")
+    monkeypatch.setenv("OCR_KTP_API_TOKEN", "server-secret")
+    monkeypatch.setattr(
+        "app.services.httpx.AsyncClient",
+        lambda **_kwargs: real_async_client(transport=transport),
+    )
+
+    response = client.post(
+        "/api/v1/ocr/ktp",
+        files={"file": ("ktp.jpg", JPEG, "image/jpeg")},
+    )
+    assert response.status_code == 502
+    assert "upstream_status=415" in caplog.text
+    assert "server-secret" not in caplog.text
 
 
 def test_rate_limiter_releases_requests_after_window(monkeypatch) -> None:

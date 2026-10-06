@@ -13,13 +13,15 @@ technologies:
     description: Membaca bidang identitas pada KTP dan menyajikannya sebagai data terstruktur.
     category: document-intelligence
     owner: Platform Teknologi & Keamanan
-    status: beta
+    status: available
     playground: true
     api: true
     api_version: v1
     operation: /api/v1/ocr/ktp
     upstream_url_env: OCR_KTP_API_URL
     upstream_token_env: OCR_KTP_API_TOKEN
+    upstream_payload: json-base64
+    upstream_base64_field: imageBase64
     accepted_types: [image/jpeg, image/png]
     accepted_extensions: [.jpg, .jpeg, .png]
     max_size_mb: 5
@@ -34,10 +36,13 @@ technologies:
     output_fields:
       - {key: nik, label: NIK}
       - {key: nama, label: Nama}
-      - {key: tempat_lahir, label: Tempat lahir}
-      - {key: tanggal_lahir, label: Tanggal lahir}
-      - {key: jenis_kelamin, label: Jenis kelamin}
+      - {key: Tempat Lahir, label: Tempat lahir}
+      - {key: tgl_lahir, label: Tanggal lahir}
+      - {key: Jenis Kelamin, label: Jenis kelamin}
       - {key: alamat, label: Alamat}
+      - {key: RT/RW, label: RT/RW}
+      - {key: kel_desa, label: Kelurahan/Desa}
+      - {key: kecamatan, label: Kecamatan}
     retention_notice: LUTUNG tidak menyimpan unggahan secara persisten. Parser dapat memakai ruang sementara selama permintaan. Kebijakan layanan OCR tujuan harus disetujui sebelum status produksi.
 
   - id: general-ocr
@@ -76,13 +81,17 @@ technologies:
     description: Mengidentifikasi tipe dokumen dan area dokumen yang terdeteksi.
     category: document-intelligence
     owner: Platform Teknologi & Keamanan
-    status: beta
+    status: available
     playground: true
     api: true
     api_version: v1
     operation: /api/v1/document/detect
     upstream_url_env: DOCUMENT_DETECTION_API_URL
     upstream_token_env: DOCUMENT_DETECTION_API_TOKEN
+    upstream_payload: json-base64
+    upstream_base64_field: image
+    upstream_static_fields:
+      kode_dokumen: ""
     accepted_types: [image/jpeg, image/png]
     accepted_extensions: [.jpg, .jpeg, .png]
     max_size_mb: 5
@@ -95,9 +104,10 @@ technologies:
       - Gunakan gambar JPG atau PNG.
       - Pastikan batas dokumen tampak pada gambar.
     output_fields:
-      - {key: document_type, label: Jenis dokumen}
-      - {key: confidence, label: Confidence}
-      - {key: bounding_box, label: Bounding box}
+      - {key: predictions, label: Prediksi, item_key: class}
+      - {key: kode_dokumen, label: Kode dokumen}
+      - {key: is_match, label: Cocok}
+      - {key: message, label: Pesan}
     retention_notice: LUTUNG tidak menyimpan unggahan secara persisten. Parser dapat memakai ruang sementara selama permintaan. Kebijakan layanan deteksi tujuan harus disetujui sebelum status produksi.
 
   - id: face-matching

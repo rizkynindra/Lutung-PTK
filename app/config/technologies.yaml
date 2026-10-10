@@ -122,3 +122,29 @@ technologies:
     capabilities: []
     input_notes: []
     output_fields: []
+
+- id: pattern-matching
+    name: Pattern Matching
+    short_description: Perbandingan kemiripan background antara dua gambar.
+    description: Teknologi ini digunakan untuk mendeteksi adanya indikasi manipulasi wajah pada gambar.
+    category: computer-vision
+    owner: Platform Teknologi & Keamanan
+    status: coming-soon
+    playground: false
+    api: false
+    capabilities: []
+    input_notes: []
+    output_fields: []
+
+- id: text-matching
+    name: Text Matching
+    short_description: Perbandingan teks antara dua file.
+    description: Teknologi ini dapat digunakan pada studi kasus pencocokan teks pada invoice dan referensi harga yang telah disepakati.
+    category: Document Intelligence
+    owner: Platform Teknologi & Keamanan
+    status: coming-soon
+    playground: false
+    api: false
+    capabilities: []
+    input_notes: []
+    output_fields: []
